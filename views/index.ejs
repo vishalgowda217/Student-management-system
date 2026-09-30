@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <title>Student Management System</title>
+
+    <style>
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #eef2f7;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .container {
+            width: 90%;
+            margin: auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #1e3a8a;
+        }
+
+        .add {
+            display: inline-block;
+            background: #2563eb;
+            color: white;
+            padding: 12px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #1e3a8a;
+            color: white;
+            padding: 15px;
+        }
+
+        td {
+            padding: 14px;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+
+        tr:hover {
+            background: #f1f5f9;
+        }
+
+        .edit {
+            background: #16a34a;
+            color: white;
+            padding: 7px 12px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .delete {
+            background: #dc2626;
+            color: white;
+            padding: 7px 12px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <h1>🎓 Student Management System</h1>
+
+    <a href="/add" class="add">
+        + Add Student
+    </a>
+
+    <table>
+
+        <thead>
+
+            <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Course</th>
+                <th>Marks</th>
+                <th>Actions</th>
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            <% students.forEach(student => { %>
+
+            <tr>
+
+                <td>
+                    <%= student.id %>
+                </td>
+
+                <td>
+                    <%= student.name %>
+                </td>
+
+                <td>
+                    <%= student.email %>
+                </td>
+
+                <td>
+                    <%= student.course %>
+                </td>
+
+                <td>
+                    <%= student.marks %>
+                </td>
+
+                <td>
+
+                    <a
+                        href="/edit/<%= student.id %>"
+                        class="edit">
+                        Edit
+                    </a>
+
+                    <a
+                        href="/delete/<%= student.id %>"
+                        class="delete"
+                        onclick="return confirm('Delete this student?')">
+                        Delete
+                    </a>
+
+                </td>
+
+            </tr>
+
+            <% }) %>
+
+        </tbody>
+
+    </table>
+
+</div>
+
+</body>
+</html>
