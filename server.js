@@ -16,12 +16,14 @@ const db = mysql.createConnection({
 });
 
 db.connect((err) => {
+
     if (err) {
         console.log("❌ MySQL connection failed!");
         console.log(err.message);
     } else {
         console.log("✅ MySQL Connected Successfully!");
     }
+
 });
 
 // ===============================
@@ -29,29 +31,94 @@ db.connect((err) => {
 // ===============================
 
 app.use(express.urlencoded({ extended: true }));
+
 app.use(express.static("public"));
 
 app.set("view engine", "ejs");
 
 // ===============================
-// VIEW ALL STUDENTS
+// HOME + SEARCH
 // ===============================
 
 app.get("/", (req, res) => {
 
-    const sql = "SELECT * FROM students";
+    const search = req.query.search;
 
-    db.query(sql, (err, results) => {
+    // ===============================
+    // SEARCH STUDENT
+    // ===============================
 
-        if (err) {
-            return res.send("Database Error: " + err.message);
-        }
+    if (search) {
 
-        res.render("index", {
-            students: results
+        const sql = `
+            SELECT * FROM students
+            WHERE id = ?
+            OR name LIKE ?
+            LIMIT 1
+        `;
+
+        db.query(
+            sql,
+            [search, `%${search}%`],
+            (err, results) => {
+
+                if (err) {
+
+                    return res.send(
+                        "Database Error: " + err.message
+                    );
+
+                }
+
+                res.render("index", {
+
+                    students: [],
+
+                    searchedStudent:
+                        results.length > 0
+                            ? results[0]
+                            : null,
+
+                    searchPerformed: true
+
+                });
+
+            }
+        );
+
+    }
+
+    // ===============================
+    // SHOW ALL STUDENTS
+    // ===============================
+
+    else {
+
+        const sql = "SELECT * FROM students ORDER BY id";
+
+        db.query(sql, (err, results) => {
+
+            if (err) {
+
+                return res.send(
+                    "Database Error: " + err.message
+                );
+
+            }
+
+            res.render("index", {
+
+                students: results,
+
+                searchedStudent: null,
+
+                searchPerformed: false
+
+            });
+
         });
 
-    });
+    }
 
 });
 
@@ -60,7 +127,9 @@ app.get("/", (req, res) => {
 // ===============================
 
 app.get("/add", (req, res) => {
+
     res.render("add");
+
 });
 
 // ===============================
@@ -69,7 +138,12 @@ app.get("/add", (req, res) => {
 
 app.post("/add", (req, res) => {
 
-    const { name, email, course, marks } = req.body;
+    const {
+        name,
+        email,
+        course,
+        marks
+    } = req.body;
 
     const sql = `
         INSERT INTO students
@@ -83,10 +157,15 @@ app.post("/add", (req, res) => {
         (err) => {
 
             if (err) {
-                return res.send("Error: " + err.message);
+
+                return res.send(
+                    "Error: " + err.message
+                );
+
             }
 
             res.redirect("/");
+
         }
     );
 
@@ -100,19 +179,38 @@ app.get("/edit/:id", (req, res) => {
 
     const id = req.params.id;
 
-    const sql = "SELECT * FROM students WHERE id = ?";
+    const sql =
+        "SELECT * FROM students WHERE id = ?";
 
-    db.query(sql, [id], (err, results) => {
+    db.query(
+        sql,
+        [id],
+        (err, results) => {
 
-        if (err) {
-            return res.send("Error: " + err.message);
+            if (err) {
+
+                return res.send(
+                    "Error: " + err.message
+                );
+
+            }
+
+            if (results.length === 0) {
+
+                return res.send(
+                    "Student not found!"
+                );
+
+            }
+
+            res.render("edit", {
+
+                student: results[0]
+
+            });
+
         }
-
-        res.render("edit", {
-            student: results[0]
-        });
-
-    });
+    );
 
 });
 
@@ -124,24 +222,44 @@ app.post("/edit/:id", (req, res) => {
 
     const id = req.params.id;
 
-    const { name, email, course, marks } = req.body;
+    const {
+        name,
+        email,
+        course,
+        marks
+    } = req.body;
 
     const sql = `
         UPDATE students
-        SET name = ?, email = ?, course = ?, marks = ?
+        SET
+            name = ?,
+            email = ?,
+            course = ?,
+            marks = ?
         WHERE id = ?
     `;
 
     db.query(
         sql,
-        [name, email, course, marks, id],
+        [
+            name,
+            email,
+            course,
+            marks,
+            id
+        ],
         (err) => {
 
             if (err) {
-                return res.send("Error: " + err.message);
+
+                return res.send(
+                    "Error: " + err.message
+                );
+
             }
 
-            res.redirect("/");
+            res.redirect("/?search=" + id);
+
         }
     );
 
@@ -155,16 +273,26 @@ app.get("/delete/:id", (req, res) => {
 
     const id = req.params.id;
 
-    const sql = "DELETE FROM students WHERE id = ?";
+    const sql =
+        "DELETE FROM students WHERE id = ?";
 
-    db.query(sql, [id], (err) => {
+    db.query(
+        sql,
+        [id],
+        (err) => {
 
-        if (err) {
-            return res.send("Error: " + err.message);
+            if (err) {
+
+                return res.send(
+                    "Error: " + err.message
+                );
+
+            }
+
+            res.redirect("/");
+
         }
-
-        res.redirect("/");
-    });
+    );
 
 });
 
@@ -174,6 +302,8 @@ app.get("/delete/:id", (req, res) => {
 
 app.listen(PORT, () => {
 
-    console.log(`🚀 Server running at http://localhost:${PORT}`);
+    console.log(
+        `🚀 Server running at http://localhost:${PORT}`
+    );
 
 });
